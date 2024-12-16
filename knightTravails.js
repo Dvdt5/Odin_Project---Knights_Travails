@@ -12,8 +12,6 @@ class Cell {
 
 export default class knightTravails {
     constructor () {
-        this.finish = null;
-        this.board = this.buildBoard();
         this.knightMoves = [
             [1, 2],
             [1, -2],
@@ -26,31 +24,61 @@ export default class knightTravails {
         ];
     }
 
-    buildBoard(){
-        let board = [];
+    
 
-        for (let i = 0; i < 8; i++){
-            board[i] = []
-            for(let j = 0; j < 8; j++){
-                board[i][j] = new Cell(j, i);
-            }
-        }
-        return board;
-    }
-
-    availableMoves(currCoords){
+    availableMoves(currCell){
         let availableCells = []
 
         this.knightMoves.forEach(move => {
-            const x = currCoords[0] + move[0];
-            const y = currCoords[1] + move[1];
+            const x = currCell.coords[0] + move[0];
+            const y = currCell.coords[1] + move[1];
 
             if (x < 8 && x >= 0 && y < 8 && y >= 0 ){
                 const cell = new Cell(x,y);
+                cell.preCell = currCell;
                 availableCells.push(cell);
             }
         })
         return availableCells;
+    }
+
+
+    // Builds the path into string.
+    path(cell){
+        if (cell.preCell === null){
+            return JSON.stringify(cell.coords);
+        }
+        return this.path(cell.preCell) + "-->" + JSON.stringify(cell.coords);
+    }
+
+    knightMove(start, finish){
+
+        if (JSON.stringify(start) == JSON.stringify(finish)) {
+            return start;
+        }
+
+        // Starts the queue from first cell
+        const startCell = new Cell(start[0],start[1]);
+        let queue = [startCell];
+
+        let seenCells = new Set(); 
+        
+        while (queue) {
+            const cell = queue.shift();
+            const coordsJSON = JSON.stringify(cell.coords);
+
+            if (!seenCells.has(coordsJSON)){
+                seenCells.add(coordsJSON);
+            }
+
+            if (JSON.stringify(cell.coords) === JSON.stringify(finish)){
+                return this.path(cell);
+            } else {
+                const availableCells = this.availableMoves(cell);
+                queue = [...queue , ...availableCells]
+            }
+
+        }
     }
 
 }
